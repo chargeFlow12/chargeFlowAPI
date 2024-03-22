@@ -57,7 +57,7 @@ if len(boxes) > 0:
     # 감지 결과 표시
     from PIL import Image
     detect_path = f'runs/detect/exp/{os.path.basename(image_path)}'
-    detected_image = Image.open(detect_path)  
+    detected_image = Image.open(detect_path)
     plt.imshow(detected_image)
     plt.title("detected_image")
     plt.show()
@@ -65,7 +65,7 @@ if len(boxes) > 0:
     plt.imshow(cv2.cvtColor(zoom_image, cv2.COLOR_BGR2RGB))
     plt.title("Zoomed Image")
     plt.show()
-    
+
 
     # OCR 처리 및 번호판 값 출력
     ocr_result = reader.readtext(zoom_image, paragraph=False)
@@ -101,4 +101,4 @@ else:
     detected_image = Image.open(detect_path)
     plt.imshow(detected_image)
     plt.title("Original Image")
-    plt.show()  
+    plt.show()
