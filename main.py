@@ -2,12 +2,19 @@ from io import BytesIO
 from PIL import Image
 from fastapi import FastAPI, UploadFile,File
 import logging
+from fastapi.middleware.cors import CORSMiddleware
 
 from my_package.image import process_image,validate_image_file,sample_process_image
 
 app = FastAPI()
 
+origin=['*']
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origin,
+    allow_methods=["GET","POST"],
+    allow_headers=["*"])
 
 @app.get("/")
 async def root():
