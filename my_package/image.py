@@ -105,6 +105,9 @@ async def sample_process_image(image):
                     boxes.append([x, y, w, h])
                     confidences.append(float(confidence))
 
+
+        logging.info('boxes',boxes)
+        logging.info('confidences',confidences)
         if len(boxes) > 0:
             x, y, w, h = boxes[np.argmax(confidences)]
             zoom_image = image[y:y+h, x:x+w]
@@ -149,9 +152,10 @@ async def sample_process_image(image):
             logging.info("No car detected.")
             result_type='None'
 
+        logging.info("result",result_text,result_type)
         return {
-            "result_text": result_text,
-            "result_type": result_type,
+            "resultText": result_text,
+            "resultType": result_type,
         }
     except Exception as e:
         logging.info('error',e)
