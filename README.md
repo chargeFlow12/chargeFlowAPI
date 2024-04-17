@@ -39,3 +39,9 @@ uvicorn main:app --reload
 - FastAPI
 - YOLOv5
 - Uvicorn
+
+
+## License
+
+[License-MIT](https://github.com/chargeFlow12/chargeFlowAPI/blob/main/LICENSE-MIT)
+[License-GPL](https://github.com/chargeFlow12/chargeFlowAPI/blob/main/LICENSE-GPL)
