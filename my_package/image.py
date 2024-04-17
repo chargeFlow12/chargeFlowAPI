@@ -5,12 +5,13 @@ import logging
 from fastapi import HTTPException
 
 from easyocr import Reader
-import torch
+
 from yolov5 import YOLOv5
 
 import cv2
 import numpy as np
 import re
+import torch
 
 # easyocr에서 ssl 비활성화시켜줘서 로컬에서 작동함(로컬환경:mac os)
 import ssl
@@ -40,6 +41,65 @@ async def process_image(image):
         "mode": image.mode
     }
 
+async def process_image(image):
+    contents = await image.read()
+    result_text=''
+    result_type=''
+
+    reader = Reader(['ko'], gpu=False)
+    logging.info('before')
+    fiveModel = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+
+
+    tmpImg = Image.open(BytesIO(contents))
+    temp = fiveModel(tmpImg)
+    detected_objects = temp.pandas().xyxy[0]
+
+    #이미지 read
+    nparr = np.fromstring(contents, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    for _, obj in detected_objects.iterrows():
+                x1, y1, x2, y2 = int(obj['xmin']), int(obj['ymin']), int(obj['xmax']), int(obj['ymax'])
+                # 감지된 객체의 영역을 추출
+                crop_img = image[y1:y2, x1:x2]
+                class_name = obj['name']
+                
+                # 차량 객체를 확인
+                if class_name == "car":  # 'car'는 모델에서 차량 객체에 해당하는 클래스명이어야 함
+                    zoom_image = image[y1:y2, x1:x2]
+                  
+                
+                # OCR 처리
+                ocr_result = reader.readtext(crop_img, paragraph=False)
+                plate_pattern = re.compile(r'\d{1,3}[가-힣]\d{4}')
+
+                for result in ocr_result:
+                    text = result[1]
+                    logging.info('detected_text',text)
+                    if plate_pattern.match(text.replace(" ", "")):
+                            logging.info('detected_text',text)
+                            result_text=text
+                            avg_color = np.mean(zoom_image, axis=(0, 1))
+                            logging.info("후!")
+
+                            if abs(avg_color[0] - avg_color[1]) > 10 or abs(avg_color[0] - avg_color[2]) > 10:
+                                logging.info("Possible Electric Car Detected")
+                                result_type='Electric'
+                            else:
+                                logging.info("Non-Electric Car Detected")
+                                result_type='Non-electric'
+                            break
+                    
+                
+    return {
+            "resultText": result_text,
+            "resultType": result_type,
+        }
+
+
+
+
 async def sample_process_image(image):
     try:
         logging.info('Start image processing')
@@ -54,28 +114,15 @@ async def sample_process_image(image):
         image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        # temp yolo5로 안됨...ㅠㅜ
-        # image_temp = Image.open(BytesIO(contents))
-        # image_np = np.array(image_temp)
 
-        # results = model.predict(image_np, size=640, conf_thres=0.25)
+        # YOLO5 모델로 read
+        fiveModel = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+        tmpImg = Image.open(BytesIO(contents))
+        temp = fiveModel(tmpImg)
+        detected_objects = temp.pandas().xyxy[0]
+        logging.info("Sample",detected_objects)
 
-        # detections = results.pandas().xyxy[0]  # 감지된 객체들의 데이터프레임
-        # cars = detections[detections['class'] == 2]  # class_id 2는 자동차를 의미 (클래스 ID 확인 필요)
-
-        # # 자동차에 대한 바운딩 박스 정보 추출
-        # boxes = cars[['xmin', 'ymin', 'xmax', 'ymax']].values.tolist()
-        # confidences = cars['confidence'].tolist()
-
-        # for box, confidence in zip(boxes, confidences):
-        #     x, y, w, h = box  # YOLOv5 결과는 이미 (x_min, y_min, x_max, y_max) 형태로 제공됨
-        #     logging.info(f"Box: {x}, {y}, {w}, {h}, Confidence: {confidence}")
-
-
-
-        # results = model.predict(image_np, size=640, conf=0.25)
-
-    # YOLO 모델 설정 파일 및 가중치 파일 로드
+        # YOLO4 모델 설정 파일 및 가중치 파일 로드
         yolo_config_path = 'yolov4.cfg'
         yolo_weights_path = 'yolov4.weights'
         net = cv2.dnn.readNet(yolo_weights_path, yolo_config_path)
