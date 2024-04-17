@@ -21,9 +21,9 @@
 ### 설치 및 실행방법
 
 1. 저장소를 클론합니다:
-   ```bash
-   git clone https://yourrepository.com/yourproject.git
-   ```
+```bash
+git clone https://yourrepository.com/yourproject.git
+```
 2. 필요한 패키지들을 설치해줍니다.
 ```bash
 pip install -r requirements.txt
@@ -36,3 +36,6 @@ uvicorn main:app --reload
 
 ### 개발 환경
 
+- FastAPI
+- YOLOv5
+- Uvicorn
