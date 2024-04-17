@@ -24,7 +24,7 @@
 ```bash
 git clone https://yourrepository.com/yourproject.git
 ```
-2. 필요한 패키지들을 설치해줍니다.
+2. 필요한 패키지들을 설치해줍니다.(단 윈도우 환경의 경우 requirements.txt 파일에서 uvloop제거)
 ```bash
 pip install -r requirements.txt
 ```
